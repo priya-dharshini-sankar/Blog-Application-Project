@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog-backend
+  template:
+    metadata:
+      labels:
+        app: blog-backend
+    spec:
+      containers:
+        - name: backend
+          image: 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:tag1
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              value: "5000"
+
+            - name: DB_HOST
+              value: mysql-service
+
+            - name: DB_PORT
+              value: "3306"
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_DATABASE

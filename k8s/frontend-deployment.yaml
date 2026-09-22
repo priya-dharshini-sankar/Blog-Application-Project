@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog-frontend
+  template:
+    metadata:
+      labels:
+        app: blog-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:tag1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: BACKEND_HOST
+              value: blog-backend-service
+            - name: BACKEND_PORT
+              value: "5000"  
