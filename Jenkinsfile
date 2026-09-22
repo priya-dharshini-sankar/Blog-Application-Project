@@ -23,16 +23,18 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        sonar-scanner \
-                          -Dsonar.projectKey=Blog-Application \
-                          -Dsonar.projectName="Blog Application"
-                    '''
-                }
+    steps {
+        script {
+            def scannerHome = tool 'SonarScanner'
+
+            withSonarQubeEnv('SonarQube') {
+                sh "${scannerHome}/bin/sonar-scanner " +
+                   "-Dsonar.projectKey=Blog-Application " +
+                   "-Dsonar.projectName='Blog Application'"
             }
         }
+    }
+}
 
         stage('Quality Gate') {
             steps {
