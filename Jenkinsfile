@@ -9,7 +9,7 @@ pipeline {
             }
         }
 
-        stage('Build and Test') {
+        stage('Build') {
             steps {
                 dir('backend') {
                     sh 'npm ci'
@@ -18,6 +18,18 @@ pipeline {
                 dir('frontend') {
                     sh 'npm ci'
                     sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir('backend') {
+                    sh 'npm test --if-present'
+                }
+
+                dir('frontend') {
+                    sh 'npm test --if-present'
                 }
             }
         }
