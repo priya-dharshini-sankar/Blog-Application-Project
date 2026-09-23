@@ -43,18 +43,19 @@ pipeline {
                 }
             }
         }
-    }
-}
 
         stage('Trivy Scan') {
-    steps {
-        sh '''
-            trivy image 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:tag1
+            steps {
+                sh '''
+                    trivy image 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:tag1
 
-            trivy image 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:tag1
-        '''
+                    trivy image 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:tag1
+                '''
+            }
+        }
     }
 }
 
+        
 
 
