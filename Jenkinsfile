@@ -85,10 +85,10 @@ pipeline {
                     --name project-4-cluster
 
                     kubectl set image deployment/blog-frontend \
-                    blog-frontend=196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:${BUILD_NUMBER}
+                    frontend=196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:${BUILD_NUMBER}
 
                     kubectl set image deployment/blog-backend \
-                    blog-backend=196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:${BUILD_NUMBER}
+                    backend=196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:${BUILD_NUMBER}
 
                     kubectl rollout status deployment/blog-frontend
                     kubectl rollout status deployment/blog-backend
