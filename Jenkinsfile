@@ -61,8 +61,25 @@ pipeline {
                 '''
             }
         }
+
+        stage('ECR Push') {
+            steps {
+                sh '''
+                    aws ecr get-login-password --region ap-south-1 | \
+                    docker login --username AWS --password-stdin 196253396965.dkr.ecr.ap-south-1.amazonaws.com
+
+                    docker tag blog-frontend:${BUILD_NUMBER} 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:${BUILD_NUMBER}
+                    docker tag blog-backend:${BUILD_NUMBER} 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:${BUILD_NUMBER}
+
+                    docker push 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:${BUILD_NUMBER}
+                    docker push 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:${BUILD_NUMBER}
+                '''
+            }
+        }
     }
 }
+
+        
 
         
 
