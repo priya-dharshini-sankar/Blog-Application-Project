@@ -76,11 +76,44 @@ pipeline {
                 '''
             }
         }
+
+        stage('EKS Deployment') {
+            steps {
+                sh '''
+                    aws eks update-kubeconfig \
+                    --region ap-south-1 \
+                    --name project-4-cluster
+
+                    kubectl set image deployment/blog-frontend \
+                    blog-frontend=196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:${BUILD_NUMBER}
+
+                    kubectl set image deployment/blog-backend \
+                    blog-backend=196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:${BUILD_NUMBER}
+
+                    kubectl rollout status deployment/blog-frontend
+                    kubectl rollout status deployment/blog-backend
+                '''
+            }
+        }
+
+        stage('Deployment Validation') {
+            steps {
+                sh '''
+                    kubectl get deployments
+                    kubectl get pods
+                    kubectl get services
+                '''
+            }
+        }
     }
 }
 
         
 
         
+
+
+
+
 
 
