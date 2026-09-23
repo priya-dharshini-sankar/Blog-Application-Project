@@ -44,12 +44,20 @@ pipeline {
             }
         }
 
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    docker build -t blog-frontend:${BUILD_NUMBER} ./frontend
+                    docker build -t blog-backend:${BUILD_NUMBER} ./backend
+                '''
+            }
+        }
+
         stage('Trivy Scan') {
             steps {
                 sh '''
-                    trivy image 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-frontend:tag1
-
-                    trivy image 196253396965.dkr.ecr.ap-south-1.amazonaws.com/blog-backend:tag1
+                    trivy image blog-frontend:${BUILD_NUMBER}
+                    trivy image blog-backend:${BUILD_NUMBER}
                 '''
             }
         }
