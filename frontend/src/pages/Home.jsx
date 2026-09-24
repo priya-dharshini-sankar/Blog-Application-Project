@@ -23,7 +23,7 @@ export default function Home() {
     <>
       <section className="hero">
         <div className="container">
-          <div className="hero-eyebrow">Notes from production</div>
+          <div className="hero-eyebrow">Notes from production - THIS IS VERSION 2(FOR TESTING PURPOSE)</div>
           <h1>
             Dispatches from the <em>build pipeline</em>.
           </h1>
