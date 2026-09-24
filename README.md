@@ -1,129 +1,134 @@
-# Marginal — Blog App on EKS (CI/CD Reference Project)
+# 🚀 Production-Level Three-Tier Blog Application on Amazon EKS
 
-A production-style 3-tier blog application — **React frontend, Node.js/Express backend,
-MySQL database** — deployed to **Amazon EKS** through a Jenkins pipeline that runs
-**SonarQube** (code quality), **Nexus** (artifact storage), **Trivy** (container scanning),
-and ships with **Prometheus/Grafana** monitoring hooks.
+A production-oriented three-tier Blog Application deployed on **Amazon EKS** with Docker, Jenkins CI/CD, Amazon ECR, SonarQube, Trivy, Prometheus, and Grafana.
 
-## Architecture
+## 📌 Project Overview
 
+This project demonstrates the deployment and automation of a three-tier Blog Application consisting of:
+
+- **Frontend** – React + NGINX
+- **Backend** – Node.js + Express
+- **Database** – MySQL
+
+The application is containerized using Docker and deployed on Amazon EKS with persistent database storage.
+
+## 🏗️ Architecture
+
+```text
+GitHub
+   ↓
+Jenkins CI/CD
+   ↓
+SonarQube → Quality Gate
+   ↓
+Docker Build
+   ↓
+Trivy Scan
+   ↓
+Amazon ECR
+   ↓
+Amazon EKS
+   ├── Frontend
+   ├── Backend
+   └── MySQL + Persistent Storage
+          ↓
+   Prometheus + Grafana
+````
+
+## 🛠️ Technology Stack
+
+| Category        | Technologies               |
+| --------------- | -------------------------- |
+| Frontend        | React, Vite, NGINX         |
+| Backend         | Node.js, Express           |
+| Database        | MySQL 8.0                  |
+| Containers      | Docker                     |
+| Registry        | Amazon ECR                 |
+| Orchestration   | Kubernetes, Amazon EKS     |
+| CI/CD           | Jenkins                    |
+| Code Quality    | SonarQube                  |
+| Security        | Trivy                      |
+| Monitoring      | Prometheus, Grafana        |
+| Storage         | Kubernetes PVC, Amazon EBS |
+| Version Control | Git, GitHub                |
+
+## 🔄 CI/CD Pipeline
+
+The Jenkins pipeline automates:
+
+```text
+Checkout
+→ Build
+→ Test
+→ SonarQube Analysis
+→ Quality Gate
+→ Docker Build
+→ Trivy Scan
+→ Image Versioning
+→ ECR Push
+→ EKS Deployment
+→ Deployment Validation
 ```
-                         ┌────────────────────────┐
- Browser ── HTTPS ──▶    │   ALB Ingress (EKS)     │
-                         └───────────┬─────────────┘
-                     ┌───────────────┴───────────────┐
-                     ▼                                ▼
-          ┌─────────────────────┐          ┌─────────────────────┐
-          │ frontend-service     │  /api → │ backend-service      │
-          │ (nginx + React SPA)  │────────▶│ (Node/Express API)   │
-          │ 3+ pods, HPA         │          │ 3+ pods, HPA          │
-          └─────────────────────┘          └──────────┬───────────┘
-                                                        ▼
-                                            ┌─────────────────────┐
-                                            │ mysql StatefulSet    │
-                                            │ + EBS gp3 volume     │
-                                            └─────────────────────┘
 
-CI/CD:  Git push → Jenkins → npm test → SonarQube gate → Nexus (artifact) →
-        docker build → Trivy scan (fails on CRITICAL/HIGH) → push to ECR →
-        kubectl apply -k (EKS) → rollout status → smoke test
+A GitHub webhook automatically triggers Jenkins when code is pushed.
 
-Monitoring: Prometheus Operator scrapes backend /metrics via ServiceMonitor,
-            PrometheusRule alerts on 5xx rate / crash loops / DB down,
-            Grafana dashboards on top (bring your own kube-prometheus-stack).
-```
+## ☁️ AWS & Kubernetes
 
-## Repository layout
+The application is deployed on Amazon EKS using:
 
-```
-blog-app-eks/
-├── frontend/            React (Vite) SPA, nginx-unprivileged Docker image
-├── backend/              Express REST API, MySQL client, JWT auth, Prometheus metrics
-├── database/init.sql     Schema + seed data (users, posts, comments)
+* EKS Cluster and Managed Node Group
+* Amazon ECR
+* Amazon EBS persistent storage
+* Kubernetes Deployments and StatefulSet
+* Kubernetes Services
+* ConfigMaps and Secrets
+* LoadBalancer
+* NetworkPolicy
+
+Frontend and Backend use multiple replicas with readiness/liveness probes and RollingUpdate deployment strategy.
+
+## 🔐 Security
+
+The project implements:
+
+* Dedicated IAM user for Jenkins
+* Kubernetes RBAC
+* Restricted database network access
+* Kubernetes Secrets
+* Non-root containers
+* Trivy vulnerability scanning
+* Persistent and private database access
+* Git protection for sensitive configuration
+
+## 📊 Monitoring & Logging
+
+Prometheus and Grafana are used to monitor:
+
+* CPU and memory
+* Pod status
+* Pod restarts
+* Node health
+* Application metrics
+
+Kubernetes logs are used to inspect Frontend, Backend, Database, and workload activity.
+
+## 📂 Project Structure
+
+```text
+BlogReact/
+├── backend/
+├── frontend/
+├── database/
 ├── k8s/
-│   ├── base/              Namespace, gp3 StorageClass
-│   ├── mysql/              StatefulSet, PVC, Secret, init ConfigMap
-│   ├── backend/            Deployment, Service, HPA, ConfigMap/Secret
-│   ├── frontend/           Deployment, Service, HPA
-│   ├── ingress/            ALB Ingress
-│   ├── monitoring/         ServiceMonitor + PrometheusRule
-│   └── kustomization.yaml  Ties everything together (`kubectl apply -k k8s/`)
-├── Jenkinsfile            Full CI/CD pipeline
-└── docker-compose.yml     Local dev: mysql + backend + frontend
+├── Jenkinsfile
+├── sonar-project.properties
+├── .gitignore
+└── README.md
 ```
 
-## Run it locally first
+## ✅ Project Outcome
 
-```bash
-docker compose up --build
-# frontend  → http://localhost:3000
-# backend   → http://localhost:5000/healthz
-# mysql     → localhost:3306 (bloguser / changeme)
-```
+The Blog Application was successfully containerized, published to Amazon ECR, deployed on Amazon EKS, and integrated with an automated Jenkins CI/CD pipeline.
 
-The seed data ships four demo posts; register a new account to write your own entries.
+The project demonstrates **CI/CD automation, containerization, Kubernetes deployment, persistent storage, security, rolling deployment, monitoring, and logging**.
 
-## Prerequisites for the real EKS deployment
-
-1. **EKS cluster** (`eksctl create cluster ...`) with:
-   - AWS EBS CSI driver add-on (for the `gp3` StorageClass / MySQL PVC)
-   - AWS Load Balancer Controller add-on (for the ALB Ingress)
-   - An ACM certificate for your domain, referenced in `k8s/ingress/ingress.yaml`
-2. **ECR** repositories: `blogapp-backend`, `blogapp-frontend`
-3. **Nexus** repository (npm-hosted) reachable from the Jenkins agent
-4. **SonarQube** server + a Jenkins `sonarqube-server` configuration
-5. **Trivy** installed on the Jenkins agent (or run as a container step)
-6. **kube-prometheus-stack** installed via Helm in a `monitoring` namespace
-   (provides the Prometheus Operator CRDs the `ServiceMonitor`/`PrometheusRule` need)
-7. Jenkins credentials: `aws-creds`, `sonarqube-token`, `nexus-creds`, `ecr-registry` (string)
-
-## Deploying manually (what the pipeline automates)
-
-```bash
-aws eks update-kubeconfig --name blogapp-eks-cluster --region ap-south-1
-
-# Load the real schema into the init ConfigMap
-kubectl create configmap mysql-init-script \
-  --from-file=init.sql=database/init.sql -n blogapp \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-# Build & push images
-docker build -t <ECR_REGISTRY>/blogapp-backend:v1 ./backend
-docker build -t <ECR_REGISTRY>/blogapp-frontend:v1 ./frontend
-trivy image --severity CRITICAL,HIGH <ECR_REGISTRY>/blogapp-backend:v1
-docker push <ECR_REGISTRY>/blogapp-backend:v1
-docker push <ECR_REGISTRY>/blogapp-frontend:v1
-
-# Point the manifests at the images you just pushed, then apply
-sed -i "s#<ECR_REGISTRY>/blogapp-backend:IMAGE_TAG#<ECR_REGISTRY>/blogapp-backend:v1#" k8s/backend/deployment.yaml
-sed -i "s#<ECR_REGISTRY>/blogapp-frontend:IMAGE_TAG#<ECR_REGISTRY>/blogapp-frontend:v1#" k8s/frontend/deployment.yaml
-kubectl apply -k k8s/
-kubectl rollout status deployment/backend -n blogapp
-kubectl rollout status deployment/frontend -n blogapp
-kubectl get ingress blogapp-ingress -n blogapp
-```
-
-## Secrets — replace before real use
-
-`k8s/mysql/secret.yaml` and `k8s/backend/config.yaml` contain placeholder passwords
-(`REPLACE_WITH_...`). For production, don't commit real secrets — pull them from
-AWS Secrets Manager via the External Secrets Operator, or inject them at deploy time
-from a Jenkins credential store.
-
-## What each tool is doing in the pipeline
-
-| Stage | Tool | Purpose |
-|---|---|---|
-| Static analysis | **SonarQube** | Code smells, bugs, coverage, quality gate blocks bad merges |
-| Artifact storage | **Nexus** | Versioned backend package storage, single source of truth for releases |
-| Image scanning | **Trivy** | Fails the build on CRITICAL/HIGH CVEs in either image, plus a filesystem/dependency scan |
-| Registry | **ECR** | Stores the scanned, tagged images the cluster pulls from |
-| Deploy | **kubectl + kustomize** | Applies the full manifest set to EKS, waits for rollout health |
-| Monitoring | **Prometheus + Grafana** | Scrapes `/metrics`, alerts on error rate / crash loops / DB availability |
-
-## Frontend design notes
-
-The UI ("Marginal") is a custom-built design system, not a component-library
-default: a paper-grain background, Fraunces/Inter/IBM Plex Mono type pairing,
-moss-and-rust accent ink, and a signature **reading-spine** scroll-progress
-ruler on article pages. All tokens live in `frontend/src/index.css`.
